@@ -1,6 +1,6 @@
-# Relatório de ligações — Bradial
+# Relatório de ligações
 
-Relatório de CDR para Issabel 5que mostra **uma linha por ligação**, com o nome do
+Relatório de CDR para Issabel 5 que mostra **uma linha por ligação**, com o nome do
 departamento, quem atendeu e, ao expandir, todos os ramais que tocaram, não
 atenderam ou estavam ocupados. Os registros crus do CDR continuam acessíveis na
 "Visão técnica".
