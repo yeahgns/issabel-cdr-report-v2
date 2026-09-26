@@ -1,11 +1,11 @@
 # Relatório de ligações — Bradial
 
-Relatório de CDR para Issabel que mostra **uma linha por ligação**, com o nome do
+Relatório de CDR para Issabel 5que mostra **uma linha por ligação**, com o nome do
 departamento, quem atendeu e, ao expandir, todos os ramais que tocaram, não
 atenderam ou estavam ocupados. Os registros crus do CDR continuam acessíveis na
 "Visão técnica".
 
-Compatível com Issabel 4 (CentOS 7, PHP 5.4, MariaDB 5.5). Sem dependências,
+Também compatível com Issabel 4 (CentOS 7, PHP 5.4, MariaDB 5.5). Sem dependências,
 sem framework, sem Composer.
 
 ## Instalação
