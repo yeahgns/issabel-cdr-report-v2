@@ -16,11 +16,9 @@ Uma linha por ligação. Nome do departamento em vez de número de fila. Clique 
 
 ## 🔗 Demo
 
-**[issabel-cdr-report-v2-demo.onrender.com](https://issabel-cdr-report-v2-demo.onrender.com)**
+**[Clique aqui para acessar](https://issabel-cdr-report-v2-demo.onrender.com)**
 
 É o próprio relatório rodando com dados fictícios para simulação. Dá para clicar em qualquer linha, expandir o histórico de uma ligação, trocar o período e olhar as abas de Departamentos e Atendentes.
-
-> A instância é gratuita e dorme sozinha depois de um tempo sem acesso. Se a primeira ligação demorar para carregar, é só isso: ela está acordando.
 
 ## Por que existe
 
