@@ -6,20 +6,19 @@
 
 Uma linha por ligação. Nome do departamento em vez de número de fila. Clique para expandir e ver cada ramal que tocou, não atendeu ou ficou ocupado.
 
-[![Demo ao vivo](https://img.shields.io/badge/demo-ao%20vivo-1F93FF?style=for-the-badge)](https://issabel-cdr-report-v2-demo.onrender.com)
-![PHP](https://img.shields.io/badge/PHP-5.4%2B-777BB4?style=flat-square)
-![Sem dependências](https://img.shields.io/badge/depend%C3%AAncias-zero-2FAE60?style=flat-square)
-![Licença](https://img.shields.io/badge/licen%C3%A7a-MIT-lightgrey?style=flat-square)
+[![Live demo](https://img.shields.io/badge/demo-live-1F93FF?style=flat&logo=render&logoColor=white)](https://issabel-cdr-report-v2-demo.onrender.com)
+![PHP](https://img.shields.io/badge/PHP-5.4%2B-777BB4?style=flat&logo=php&logoColor=white)
+![License](https://img.shields.io/badge/license-MIT-lightgrey?style=flat)
 
 </div>
 
-<img width="100%" alt="Tela do relatório de ligações" src="https://github.com/user-attachments/assets/5a4b8d07-c2b0-4971-b0da-3efb7d8cf3ad" />
+<img width="100%" alt="Tela do relatório de ligações" src="https://github.com/user-attachments/assets/5a4b8d07-c2b0-4971-b0da-3efb7d8cf3ad"/>
 
-## 🔗 Teste agora, sem instalar nada
+## 🔗 Demo
 
 **[issabel-cdr-report-v2-demo.onrender.com](https://issabel-cdr-report-v2-demo.onrender.com)**
 
-É o próprio relatório rodando com dados fictícios (nomes, números e ligações gerados na hora, nada de verdade). Dá para clicar em qualquer linha, expandir o histórico de uma ligação, trocar o período e olhar as abas de Departamentos e Atendentes.
+É o próprio relatório rodando com dados fictícios para simulação. Dá para clicar em qualquer linha, expandir o histórico de uma ligação, trocar o período e olhar as abas de Departamentos e Atendentes.
 
 > A instância é gratuita e dorme sozinha depois de um tempo sem acesso. Se a primeira ligação demorar para carregar, é só isso: ela está acordando.
 
