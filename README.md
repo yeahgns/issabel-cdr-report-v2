@@ -12,7 +12,7 @@ Uma linha por ligação. Nome do departamento em vez de número de fila. Clique 
 
 </div>
 
-<img width="100%" alt="Tela do relatório de ligações" src="https://github.com/user-attachments/assets/5a4b8d07-c2b0-4971-b0da-3efb7d8cf3ad"/>
+<img width="1917" height="924" alt="image" src="https://github.com/user-attachments/assets/ff78234a-403b-420e-a673-73cbb6b37e85" />
 
 ## 🔗 Demo
 
