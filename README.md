@@ -127,5 +127,5 @@ Veja as opções (VMs a excluir, tamanho do bloco, senha do vault) no cabeçalho
 ---
 
 <div align="center">
-Feito para o dia a dia, não para uma tela bonita e vazia. Sugestões e problemas, abra uma issue.
+Feito para o dia a dia, não para uma tela bonita e vazia. Para sugestões e problemas, abra uma issue.
 </div>
