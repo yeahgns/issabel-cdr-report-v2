@@ -1,5 +1,7 @@
 # Relatório de ligações
 
+<img width="1628" height="760" alt="Screenshot From 2026-09-26 19-27-56" src="https://github.com/user-attachments/assets/5a4b8d07-c2b0-4971-b0da-3efb7d8cf3ad" />
+
 Relatório de CDR para Issabel 5 que mostra **uma linha por ligação**, com o nome do
 departamento, quem atendeu e, ao expandir, todos os ramais que tocaram, não
 atenderam ou estavam ocupados. Os registros crus do CDR continuam acessíveis na
