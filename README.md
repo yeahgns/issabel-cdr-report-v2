@@ -44,15 +44,14 @@ Compatível com Issabel 5 e também com Issabel 4 (CentOS 7, PHP 5.4, MariaDB 5.
 O relatório fica em `/var/www/html/modules/report`.
 
 ```bash
-# 1. Baixar o projeto (repositório privado: vai pedir usuário e token)
+# 1. Baixar a versão mais recente do projeto
 cd /tmp
-git clone --depth 1 -b relatorio https://github.com/guilhermebradial/issabel.git
-rm -rf issabel/.git issabel/.gitignore issabel/deploy issabel/README.md
+git clone --depth 1 https://github.com/yeahgns/issabel-cdr-report-v2.git
 
-# 2. Colocar no lugar, guardando o relatório antigo se existir
+# 2. Mover para a pasta de módulos do Issabel (guardando o antigo se existir)
 cd /var/www/html/modules
 [ -d report ] && mv report report.old
-mv /tmp/issabel report
+mv /tmp/issabel-cdr-report-v2 report
 chown -R asterisk:asterisk report
 
 # 3. Configuração (opcional: sem config.php ele já roda com os padrões)
