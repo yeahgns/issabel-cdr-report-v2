@@ -122,6 +122,7 @@ Veja as opções (VMs a excluir, tamanho do bloco, senha do vault) no cabeçalho
 - O CDR não registra o motivo exato de abandono em fila; o `queue_log` teria isso (ABANDON, EXITWITHTIMEOUT) e pode ser incorporado depois.
 - Transferências cegas feitas por telefone às vezes geram registros com linkedid diferente; nesses casos a ligação aparece em duas linhas.
 - Use a "Visão técnica" para conferir, ligação a ligação, como os registros crus foram interpretados.
+- Ainda não há uma separação na apresentação da métrica para diferenciar ligações de telefonia padrão com campanhas dentro do módulo CallCenter (remodelado posteriormente por mim, nesse repositório [aqui](https://github.com/yeahgns/issabel-callcenter-v2). Elas são exibidas de forma conjunta, podendo atrapalhar futuras análises.
 
 ---
 
