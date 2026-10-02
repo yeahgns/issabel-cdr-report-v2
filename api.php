@@ -1,4 +1,10 @@
 <?php
+/**
+ * API do relatório.
+ *   ?action=calls   JSON com ligações (paginadas), indicadores e opções de filtro
+ *   ?action=export  CSV (mode=calls: uma linha por ligação | mode=legs: uma linha por ramal que tocou)
+ *   ?action=audio   gravação da ligação (id = linkedid), com suporte a Range para avançar/voltar
+ */
 require dirname(__FILE__) . '/lib/bootstrap.php';
 
 $cfg = app_config();
@@ -26,6 +32,7 @@ $action = param('action', 'calls');
 $demo = !empty($cfg['demo']);
 
 try {
+    /* ---------------------------------------------------------- áudio */
     if ($action === 'audio') {
         if (empty($cfg['allow_recordings'])) {
             fail(403, 'Gravações desativadas.');
@@ -108,6 +115,7 @@ try {
         exit;
     }
 
+    /* ------------------------------------------------- período e filtros */
     $today = date('Y-m-d');
     $fromD = param('from', $today);
     $toD = param('to', $fromD);
@@ -137,6 +145,7 @@ try {
     );
     $tech = !empty($cfg['allow_tech_view']) && param('tech') === '1';
 
+    /* -------------------------------------------------- dados */
     if ($demo) {
         $dir = DemoData::directory($cfg['labels']);
         $gen = new DemoData();
@@ -152,7 +161,9 @@ try {
         $rows = $repo->fetch($from, $ahead);
     }
 
-    $grouper = new CdrGrouper($dir, $cfg);
+    // Em modo demo não existe banco call_center de verdade: não tenta conectar.
+    $campaigns = $demo ? new CampaignDirectory() : CampaignDirectory::detect($cfg);
+    $grouper = new CdrGrouper($dir, $cfg, $campaigns);
     $analyzer = new CallAnalyzer($cfg);
     $all = $grouper->group($rows);
     $analyzer->annotate($all);
@@ -193,6 +204,7 @@ try {
         });
     }
 
+    /* --------------------------------------------------- exportação */
     if ($action === 'export') {
         $mode = param('mode') === 'legs' ? 'legs' : 'calls';
         $name = 'ligacoes_' . $fromD . ($toD !== $fromD ? '_a_' . $toD : '') . ($mode === 'legs' ? '_detalhado' : '') . '.csv';
@@ -200,7 +212,7 @@ try {
         header('Content-Disposition: attachment; filename="' . $name . '"');
         header('Cache-Control: no-store');
         $out = fopen('php://output', 'w');
-        fwrite($out, "\xEF\xBB\xBF");
+        fwrite($out, "\xEF\xBB\xBF"); // BOM: acentos corretos no Excel
         $dirs = array('in' => 'Recebida', 'out' => 'Feita', 'int' => 'Interna');
         $statusNames = array('answered' => 'Atendida', 'missed' => 'Perdida', 'ivr' => 'Encerrada na URA',
             'voicemail' => 'Caixa postal', 'noanswer' => 'Não atendeu', 'busy' => 'Ocupado', 'failed' => 'Falhou');
@@ -256,6 +268,7 @@ try {
         exit;
     }
 
+    /* ------------------------------------------------------ JSON */
     $per = max(10, min(200, (int) param('per', '50')));
     $total = count($list);
     $pages = max(1, (int) ceil($total / $per));
