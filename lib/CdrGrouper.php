@@ -282,6 +282,7 @@ class CdrGrouper
                     'label' => $this->stepLabel($type, $target),
                     'start' => $t0, 'end' => $t1, 'disp' => '', 'answered' => $ans,
                     'talk' => 0, 'members' => array(),
+                    'campaign' => $type === 'queue' ? $this->campaigns->campaignForQueue($target) : null,
                 );
             }
             $s =& $steps[$key];
@@ -422,11 +423,8 @@ class CdrGrouper
                 'result' => $s['answered'] !== null ? 'answered' : $this->resultKey($s['disp']),
                 'members' => $members,
             );
-            if ($s['type'] === 'queue') {
-                $campaignName = $this->campaigns->campaignForQueue($s['target']);
-                if ($campaignName !== null) {
-                    $step['campaign'] = $campaignName;
-                }
+            if (!empty($s['campaign'])) {
+                $step['campaign'] = $s['campaign'];
             }
             if ($s['type'] === 'ivr' || $s['type'] === 'voicemail' || $s['type'] === 'other') {
                 $step['dur'] = $s['talk'] > 0 ? $s['talk'] : $step['dur'];
@@ -543,7 +541,11 @@ class CdrGrouper
                 }
             }
         }
-        if ($deptStep !== null) {
+        // Ligação de campanha não entra na conta do departamento da fila:
+        // ela já tem a própria categoria (c.campaign), pra não contar em dobro.
+        if ($deptStep !== null && !empty($deptStep['campaign'])) {
+            $department = '';
+        } elseif ($deptStep !== null) {
             $department = $deptStep['label'];
         } elseif ($direction !== 'in' && $fromExt !== '') {
             $d = $this->dir->departmentsOf($fromExt);
