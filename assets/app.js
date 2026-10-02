@@ -1,3 +1,4 @@
+/* Bradial - Relatório de ligações */
 (function () {
   'use strict';
 
@@ -14,6 +15,8 @@
 
   var $ = function (id) { return document.getElementById(id); };
   var qsa = function (sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); };
+
+  /* ================================================================ formatação */
 
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
@@ -69,6 +72,8 @@
   }
   function plural(n, one, many) { return n + ' ' + (n === 1 ? one : many); }
 
+  /* ================================================================ vocabulário */
+
   function statusInfo(c) {
     var out = c.direction !== 'in';
     switch (c.status) {
@@ -116,6 +121,8 @@
   };
   var DIR_NAME = { in: 'Recebida', out: 'Feita', int: 'Interna' };
 
+  /* ================================================================ estado <-> URL */
+
   function presetRange(p) {
     var t = new Date(), f = new Date();
     if (p === 'yesterday') { t.setDate(t.getDate() - 1); f = new Date(t); }
@@ -162,6 +169,8 @@
     return u.toString();
   }
 
+  /* ================================================================ carregar */
+
   function load(opts) {
     opts = opts || {};
     var my = ++S.seq;
@@ -198,6 +207,8 @@
 
   function reset(page) { S.page = page || 1; S.open = {}; load(); }
 
+  /* ================================================================ render */
+
   function render() {
     var d = S.data;
     renderControls();
@@ -211,6 +222,7 @@
     renderAgents(d.stats);
     $('count-calls').textContent = d.total;
     $('tech-toggle').hidden = !d.features.tech;
+    $('f-dir-campaign').hidden = !d.features.campaigns;
     var now = parseDate(d.generatedAt);
     $('foot').textContent = (d.demo ? 'Modo demonstração: dados fictícios. ' : '') + 'Atualizado às ' + pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds()) + '.';
     updateLive();
@@ -374,6 +386,8 @@
     fillSelect($('f-agent'), f.agents, S.agent, 'Todos os atendentes', function (a) { return a.name ? a.name + ' (' + a.ext + ')' : 'Ramal ' + a.ext; });
   }
 
+  /* ---------------------------------------------------------------- lista */
+
   function renderCalls(calls) {
     if (!calls.length) {
       var filtered = S.q || S.dir || S.status || S.dept || S.agent || S.rec;
@@ -426,6 +440,9 @@
     } else if (c.transferred) {
       sub = '<span class="sub">Transferida</span>';
     }
+    if (c.campaign) {
+      sub += '<span class="sub campaign" title="Ligação do módulo Callcenter">Campanha: ' + esc(c.campaign) + '</span>';
+    }
 
     var waitCls = c.wait == null ? 'muted' : (c.wait > 60 ? 'warn' : '');
     var open = !!S.open[c.id];
@@ -476,6 +493,8 @@
     if (old) old.remove();
     el.insertAdjacentHTML('beforeend', detailHtml(c));
   }
+
+  /* ---------------------------------------------------------------- detalhe */
 
   function journeyHtml(c) {
     var chips = [], arrow = '<span class="arrow" aria-hidden="true">→</span>';
@@ -639,6 +658,8 @@
     return h + '</tbody></table></div>';
   }
 
+  /* ---------------------------------------------------------------- páginas */
+
   function renderPager(page, pages) {
     if (pages <= 1) { $('pager').innerHTML = ''; return; }
     var h = '<button type="button" data-page="' + (page - 1) + '"' + (page <= 1 ? ' disabled' : '') + ' aria-label="Anterior">‹</button>';
@@ -653,6 +674,8 @@
     h += '<button type="button" data-page="' + (page + 1) + '"' + (page >= pages ? ' disabled' : '') + ' aria-label="Próxima">›</button>';
     $('pager').innerHTML = h;
   }
+
+  /* ---------------------------------------------------------------- análises */
 
   function rateCell(v) {
     if (v == null) return '<span class="zero">—</span>';
@@ -722,6 +745,8 @@
     $('view-agents').innerHTML = h + '</tbody></table></div></div>';
   }
 
+  /* ================================================================ ao vivo */
+
   var liveTimer = null;
   function includesToday() { var t = ymd(new Date()); return S.from <= t && S.to >= t; }
   function updateLive() {
@@ -735,6 +760,8 @@
       if ($('live').checked && includesToday() && !S.busy && !document.hidden) load({ quiet: true });
     }, LIVE_MS);
   }
+
+  /* ================================================================ eventos */
 
   function toast(msg) {
     var t = $('toast');
