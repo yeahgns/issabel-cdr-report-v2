@@ -213,8 +213,77 @@ class CdrGrouper
 
     /* ------------------------------------------------------- montagem */
 
+    /**
+     * O discador de campanhas do Callcenter gera DUAS linhas de CDR para a
+     * mesma ligação, e as duas têm "channel" = canal Local (apenas o ";1" e
+     * o ";2" mudam), usando o próprio número do cliente como se fosse um
+     * ramal sintético:
+     *   - uma entra na fila da campanha (lastapp Queue) e se conecta à
+     *     agente via dstchannel do ramal (ex.: PJSIP/210);
+     *   - a outra faz o Dial de verdade para o tronco até o celular do
+     *     cliente (lastapp Dial, dstchannel do tronco).
+     * Como as duas têm "channel" Local, nenhuma delas tem um canal "de
+     * verdade" na origem: o restante do código nunca descobre quem ligou,
+     * e cai em resultados inconsistentes (às vezes mostra "Ramal <número
+     * do cliente>", às vezes troca quem apareceu primeiro).
+     * Aqui as duas são substituídas por UMA linha só, no formato comum de
+     * "ramal liga para número externo", para o resto do agrupador (já
+     * testado e confiável) classificar normalmente. $campaignOut recebe o
+     * nome da campanha, para a ligação final ser marcada mesmo sem mais
+     * ter um passo de fila.
+     */
+    private function mergeCampaignDialerRows(array $rows, &$campaignOut)
+    {
+        $byBase = array();
+        foreach ($rows as $i => $r) {
+            $a = $this->parseChannel($r['channel']);
+            if ($a['kind'] === 'local') {
+                $byBase[$a['base']][] = $i;
+            }
+        }
+        foreach ($byBase as $idxs) {
+            if (count($idxs) < 2) {
+                continue;
+            }
+            $queueIdx = null;
+            $dialIdx = null;
+            foreach ($idxs as $i) {
+                $r = $rows[$i];
+                $app = strtolower(trim($r['lastapp']));
+                if ($queueIdx === null && $app === 'queue' && $this->campaigns->campaignForQueue(trim($r['dst'])) !== null) {
+                    $queueIdx = $i;
+                } elseif ($dialIdx === null && $app === 'dial' && $this->parseChannel($r['dstchannel'])['kind'] === 'trunk') {
+                    $dialIdx = $i;
+                }
+            }
+            if ($queueIdx === null || $dialIdx === null) {
+                continue;
+            }
+            $q = $rows[$queueIdx];
+            $d = $rows[$dialIdx];
+            $campaignOut = $this->campaigns->campaignForQueue(trim($q['dst']));
+            $merged = $d; // parte do Dial, que já tem o número externo e o tronco certos
+            $merged['channel'] = $q['dstchannel']; // canal real da agente (ex.: PJSIP/210)
+            $merged['calldate'] = min($q['calldate'], $d['calldate']);
+            $merged['duration'] = max((int) $q['duration'], (int) $d['duration']);
+            $merged['billsec'] = max((int) $q['billsec'], (int) $d['billsec']);
+            $merged['disposition'] = $this->best(strtoupper(trim($q['disposition'])), strtoupper(trim($d['disposition'])));
+            if ($merged['recordingfile'] === '' && $q['recordingfile'] !== '') {
+                $merged['recordingfile'] = $q['recordingfile'];
+            }
+            if (empty($merged['sequence']) && !empty($q['sequence'])) {
+                $merged['sequence'] = min((int) $q['sequence'], (int) $d['sequence']);
+            }
+            $rows[$dialIdx] = $merged;
+            unset($rows[$queueIdx]);
+        }
+        return array_values($rows);
+    }
+
     private function buildCall($id, array $rows)
     {
+        $forcedCampaign = null;
+        $rows = $this->mergeCampaignDialerRows($rows, $forcedCampaign);
         usort($rows, array('CdrGrouper', 'byRowOrder'));
 
         // 1a passada: de qual passo nasceu cada canal Local
@@ -329,10 +398,10 @@ class CdrGrouper
             return null;
         }
 
-        return $this->finish($id, $start, $end, $steps, $origin, $recording, $did, $raw);
+        return $this->finish($id, $start, $end, $steps, $origin, $recording, $did, $raw, $forcedCampaign);
     }
 
-    private function finish($id, $start, $end, $steps, $origin, $recording, $did, $raw)
+    private function finish($id, $start, $end, $steps, $origin, $recording, $did, $raw, $forcedCampaign = null)
     {
         uasort($steps, function ($x, $y) {
             return $x['start'] - $y['start'];
@@ -543,7 +612,7 @@ class CdrGrouper
         }
         // Ligação de campanha não entra na conta do departamento da fila:
         // ela já tem a própria categoria (c.campaign), pra não contar em dobro.
-        if ($deptStep !== null && !empty($deptStep['campaign'])) {
+        if ($forcedCampaign !== null || ($deptStep !== null && !empty($deptStep['campaign']))) {
             $department = '';
         } elseif ($deptStep !== null) {
             $department = $deptStep['label'];
@@ -596,11 +665,13 @@ class CdrGrouper
             $rang[] = array('ext' => (string) $ext, 'name' => $name);
         }
 
-        $campaign = '';
-        foreach ($outSteps as $st) {
-            if (!empty($st['campaign'])) {
-                $campaign = $st['campaign'];
-                break;
+        $campaign = (string) $forcedCampaign;
+        if ($campaign === '') {
+            foreach ($outSteps as $st) {
+                if (!empty($st['campaign'])) {
+                    $campaign = $st['campaign'];
+                    break;
+                }
             }
         }
 
