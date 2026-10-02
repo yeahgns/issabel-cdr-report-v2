@@ -137,7 +137,7 @@ try {
 
     $filters = array(
         'q' => param('q'),
-        'dir' => in_array(param('dir'), array('in', 'out', 'int'), true) ? param('dir') : '',
+        'dir' => in_array(param('dir'), array('in', 'out', 'int', 'campaign'), true) ? param('dir') : '',
         'status' => param('status'),
         'dept' => param('dept'),
         'agent' => param('agent'),
@@ -303,6 +303,7 @@ try {
         'features' => array(
             'tech' => !empty($cfg['allow_tech_view']),
             'recordings' => !empty($cfg['allow_recordings']),
+            'campaigns' => $campaigns->isAvailable(),
             'serviceLevelSeconds' => (int) $cfg['service_level_seconds'],
             'callbackHours' => (int) $cfg['callback_window_hours'],
         ),
