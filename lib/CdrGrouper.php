@@ -15,6 +15,7 @@ class CdrGrouper
 {
     private $dir;
     private $cfg;
+    private $campaigns;
 
     private static $rank = array(
         'ANSWERED' => 4, 'BUSY' => 3, 'NO ANSWER' => 2, 'NOANSWER' => 2,
@@ -23,10 +24,13 @@ class CdrGrouper
 
     private static $ivrApps = array('background', 'read', 'waitexten', 'playback', 'ivr', 'answer', 'wait');
 
-    public function __construct(PbxDirectory $dir, array $cfg)
+    public function __construct(PbxDirectory $dir, array $cfg, CampaignDirectory $campaigns = null)
     {
         $this->dir = $dir;
         $this->cfg = $cfg;
+        // Opcional: sem o módulo Callcenter, fica um diretório vazio e a
+        // categoria de campanha simplesmente nunca é marcada.
+        $this->campaigns = $campaigns !== null ? $campaigns : new CampaignDirectory();
     }
 
     public function group(array $rows)
@@ -418,6 +422,12 @@ class CdrGrouper
                 'result' => $s['answered'] !== null ? 'answered' : $this->resultKey($s['disp']),
                 'members' => $members,
             );
+            if ($s['type'] === 'queue') {
+                $campaignName = $this->campaigns->campaignForQueue($s['target']);
+                if ($campaignName !== null) {
+                    $step['campaign'] = $campaignName;
+                }
+            }
             if ($s['type'] === 'ivr' || $s['type'] === 'voicemail' || $s['type'] === 'other') {
                 $step['dur'] = $s['talk'] > 0 ? $s['talk'] : $step['dur'];
             }
@@ -584,6 +594,14 @@ class CdrGrouper
             $rang[] = array('ext' => (string) $ext, 'name' => $name);
         }
 
+        $campaign = '';
+        foreach ($outSteps as $st) {
+            if (!empty($st['campaign'])) {
+                $campaign = $st['campaign'];
+                break;
+            }
+        }
+
         $from = array('ext' => $fromExt, 'name' => $fromExt !== '' ? $this->dir->extName($fromExt) : '');
         $trunk = '';
         if ($direction === 'in' && $firstCh['kind'] === 'trunk') {
@@ -601,6 +619,7 @@ class CdrGrouper
             'from' => $from,
             'trunk' => $trunk,
             'department' => $department,
+            'campaign' => $campaign,
             'answeredBy' => $answeredBy,
             'rang' => $rang,
             'transferred' => count($answers) > 1,
