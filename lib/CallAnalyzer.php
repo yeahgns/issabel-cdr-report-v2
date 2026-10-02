@@ -97,7 +97,13 @@ class CallAnalyzer
 
     public function matches($c, $f, $ignoreStatus)
     {
-        if ($f['dir'] !== '' && $c['direction'] !== $f['dir']) {
+        if ($f['dir'] === 'campaign') {
+            // Pseudo-direção: ligação de campanha, de qualquer direção (hoje
+            // sempre 'out', mas a checagem fica pelo campo, não pela direção).
+            if ($c['campaign'] === '') {
+                return false;
+            }
+        } elseif ($f['dir'] !== '' && $c['direction'] !== $f['dir']) {
             return false;
         }
         if (!$ignoreStatus && $f['status'] !== '') {
