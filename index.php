@@ -22,6 +22,7 @@ $v = '20260925';
 
   <header class="topbar">
     <div class="brand">
+      <img src="assets/logo.svg" alt="Bradial" class="brand-logo">
       <div>
         <h1>Relatório de ligações</h1>
         <p class="brand-sub"><?php echo $company !== '' ? $company . ' · ' : ''; ?><span id="range-label">Hoje</span></p>
@@ -98,6 +99,7 @@ $v = '20260925';
           <button type="button" data-dir="in" aria-pressed="false">Recebidas</button>
           <button type="button" data-dir="out" aria-pressed="false">Feitas</button>
           <button type="button" data-dir="int" aria-pressed="false">Internas</button>
+          <button type="button" data-dir="campaign" aria-pressed="false" id="f-dir-campaign" hidden>Campanha</button>
         </div>
         <label class="sr-only" for="f-status">Situação</label>
         <select id="f-status">
