@@ -22,7 +22,6 @@ $v = '20260925';
 
   <header class="topbar">
     <div class="brand">
-      <img src="assets/logo.svg" alt="Bradial" class="brand-logo">
       <div>
         <h1>Relatório de ligações</h1>
         <p class="brand-sub"><?php echo $company !== '' ? $company . ' · ' : ''; ?><span id="range-label">Hoje</span></p>
