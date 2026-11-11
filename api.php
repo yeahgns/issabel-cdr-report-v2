@@ -77,6 +77,16 @@ try {
             fail(404, 'O arquivo da gravação não foi encontrado no servidor.');
         }
         $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+        // Navegadores não tocam GSM (nem o WAV49 do Asterisk, que é GSM dentro de um .WAV), uLaw,
+        // aLaw ou SLN. Para ouvir, entrega uma cópia em WAV PCM feita com o sox (em cache, para o
+        // avançar/voltar funcionar); "Baixar" continua entregando o arquivo original.
+        if (param('download') !== '1' && report_needs_wav($path, $ext)) {
+            $wav = report_wav_copy($path, $ext);
+            if ($wav !== null) {
+                $path = $wav;
+                $ext = 'wav';
+            }
+        }
         $types = array('wav' => 'audio/wav', 'mp3' => 'audio/mpeg', 'ogg' => 'audio/ogg', 'gsm' => 'audio/x-gsm', 'wav49' => 'audio/wav');
         $size = filesize($path);
         $startB = 0;
@@ -311,4 +321,68 @@ try {
 } catch (Exception $e) {
     error_log('cdr-report: ' . $e->getMessage());
     fail(500, 'Não foi possível ler as ligações do banco. Verifique o acesso ao MySQL no config.php.');
+}
+
+/* ------------------------------------------------------------------ áudio: conversão para ouvir */
+
+/* O arquivo precisa virar WAV PCM para o navegador tocar? */
+function report_needs_wav($path, $ext)
+{
+    if (in_array($ext, array('gsm', 'wav49', 'sln', 'sln16', 'ulaw', 'ul', 'alaw', 'al', 'g722'), true)) {
+        return true;
+    }
+    if ($ext !== 'wav') {
+        return false;
+    }
+    // .wav: só é tocável se o formato for PCM (1), ponto flutuante (3) ou extensível (0xFFFE, PCM
+    // com cabeçalho estendido); o WAV49 do Asterisk é GSM (49 = 0x31)
+    $fh = @fopen($path, 'rb');
+    if (!$fh) {
+        return false;
+    }
+    $head = fread($fh, 64);
+    fclose($fh);
+    $pos = strpos($head, 'fmt ');
+    if (strlen($head) < 12 || substr($head, 0, 4) !== 'RIFF' || $pos === false || strlen($head) < $pos + 10) {
+        return false;
+    }
+    $u = unpack('vfmt', substr($head, $pos + 8, 2));
+    return !in_array($u['fmt'], array(1, 3, 0xFFFE), true);
+}
+
+/* Cópia em WAV PCM 8 kHz mono, em cache por (arquivo, data, tamanho). null se não der. */
+function report_wav_copy($path, $ext)
+{
+    $sox = trim((string) @shell_exec('command -v sox 2>/dev/null'));
+    if ($sox === '') {
+        return null;
+    }
+    $dir = rtrim(sys_get_temp_dir(), '/') . '/cdr-report-audio';
+    if (!is_dir($dir) && !@mkdir($dir, 0700, true)) {
+        return null;
+    }
+    $out = $dir . '/' . sha1($path . '|' . filemtime($path) . '|' . filesize($path)) . '.wav';
+    if (is_file($out) && filesize($out) > 44) {
+        @touch($out);
+        return $out;
+    }
+    // limpeza ocasional: cópias sem uso há mais de um dia
+    if (mt_rand(1, 50) === 1) {
+        foreach ((array) glob($dir . '/*.wav') as $old) {
+            if (@filemtime($old) < time() - 86400) {
+                @unlink($old);
+            }
+        }
+    }
+    $types = array('sln' => '-t raw -e signed-integer -b 16 -r 8000 -c 1', 'sln16' => '-t raw -e signed-integer -b 16 -r 16000 -c 1',
+        'ulaw' => '-t ul -r 8000 -c 1', 'ul' => '-t ul -r 8000 -c 1', 'alaw' => '-t al -r 8000 -c 1', 'al' => '-t al -r 8000 -c 1', 'wav49' => '-t wav');
+    $in = (isset($types[$ext]) ? $types[$ext] . ' ' : '') . escapeshellarg($path);
+    $tmp = $out . '.' . getmypid() . '.tmp';
+    exec(escapeshellarg($sox) . ' -q ' . $in . ' -t wav -r 8000 -c 1 -b 16 -e signed-integer ' . escapeshellarg($tmp) . ' 2>&1', $o, $rc);
+    if ($rc !== 0 || !is_file($tmp) || filesize($tmp) <= 44) {
+        @unlink($tmp);
+        return null;
+    }
+    @rename($tmp, $out);
+    return is_file($out) ? $out : null;
 }

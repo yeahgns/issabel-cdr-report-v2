@@ -35,6 +35,7 @@ Este relatório agrupa tudo isso numa única ligação, mostra quem atendeu e es
 - **Linha do tempo por ligação**, mostrando quem recebeu a chamada e quando, inclusive em transferências
 - **Departamentos e Atendentes**, com nível de serviço, mapa de calor por dia e hora, e métricas justas para quem trabalha com ring-all
 - **Gravação, exportação em CSV e modo ao vivo**
+- **Ouvir gravações em GSM**: o navegador não toca GSM (nem o WAV49 do Asterisk), então para ouvir o relatório entrega uma cópia em WAV feita com o `sox` (em cache, com avançar/voltar); "Baixar" continua entregando o arquivo original
 - **Visão técnica**, com os registros crus do CDR ao lado da interpretação, para conferir ligação a ligação
 
 Compatível com Issabel 5 e também com Issabel 4 (CentOS 7, PHP 5.4, MariaDB 5.5). Sem dependências, sem framework, sem Composer.
